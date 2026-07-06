@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOGO DO RILU - Quiz Futebol Moderno (2018-2026)</title>
+    
+    <!-- Configurações para PWA (Instalador) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0f1d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <style>
+        :root {
+            --primary: #00e676;
+            --primary-dark: #1b5e20;
+            --bg-dark: #0a0f1d;
+            --card-bg: rgba(20, 27, 45, 0.9);
+            --text-main: #ffffff;
+            --text-muted: #8a99ad;
+            --correct: #00e676;
+            --wrong: #ff1744;
+            --border-glow: #1f2c4c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            /* Imagem de fundo temática de futebol com overlay escuro para efeito marca d'água */
+            background: linear-gradient(rgba(10, 15, 29, 0.85), rgba(10, 15, 29, 0.85)), 
+                        url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-glow);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 230, 118, 0.1);
+            width: 100%;
+            max-width: 650px;
+            padding: 35px;
+            text-align: center;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-glow);
+            padding-bottom: 20px;
+        }
+
+        .score-badge {
+            background: linear-gradient(135deg, var(--primary-dark), #0d47a1);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            border: 1px solid var(--primary);
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
+        }
+
+        .timer-circle {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.3rem;
+            color: var(--primary);
+            border: 3px solid var(--primary);
+            box-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .timer-low {
+            border-color: var(--wrong);
+            color: var(--wrong);
+            box-shadow: 0 0 15px rgba(255, 23, 68, 0.5);
+            animation: pulse 0.5s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.08); }
+        }
+
+        .question-text {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+            min-height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            line-height: 1.4;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        /* EFEITO PLÁSTICO / BRILHO CRISTALINO NOS BOTÕES */
+        .option-btn {
+            background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 18px 22px;
+            text-align: left;
+            font-size: 1.05rem;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.2), 0 4px 6px rgba(0,0,0,0.3);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: linear-gradient(180deg, rgba(0, 230, 118, 0.2) 0%, rgba(0, 230, 118, 0.05) 100%);
+            border-color: var(--primary);
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), 0 0 15px rgba(0, 230, 118, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        .option-number {
+            font-weight: bold;
+            margin-right: 18px;
+            background-color: rgba(255, 255, 255, 0.1);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .option-btn.correct {
+            background: linear-gradient(180deg, rgba(0, 230, 118, 0.4) 0%, rgba(0, 230, 118, 0.15) 100%) !important;
+            border-color: var(--correct) !important;
+            box-shadow: inset 0 1px 3px rgba(255,255,255,0.5), 0 0 15px rgba(0, 230, 118, 0.4) !important;
+            font-weight: bold;
+        }
+        .option-btn.correct .option-number {
+            background-color: var(--correct);
+            color: var(--bg-dark);
+        }
+
+        .option-btn.wrong {
+            background: linear-gradient(180deg, rgba(255, 23, 68, 0.4) 0%, rgba(255, 23, 68, 0.15) 100%) !important;
+            border-color: var(--wrong) !important;
+            box-shadow: inset 0 1px 3px rgba(255,255,255,0.5), 0 0 15px rgba(255, 23, 68, 0.4) !important;
+        }
+        .option-btn.wrong .option-number {
+            background-color: var(--wrong);
+            color: white;
+        }
+
+        .feedback-icon {
+            margin-left: auto;
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+        .feedback-icon.check { color: var(--correct); }
+        .feedback-icon.cross { color: var(--wrong); }
+
+        .next-btn, .start-btn {
+            background: linear-gradient(180deg, #54ff9f 0%, #00b0ff 100%);
+            color: #000;
+            border: 1px solid rgba(255,255,255,0.4);
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: none;
+            margin: 0 auto;
+            box-shadow: inset 0 2px 3px rgba(255,255,255,0.6), 0 5px 15px rgba(0, 230, 118, 0.3);
+        }
+
+        .next-btn:hover, .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: inset 0 2px 3px rgba(255,255,255,0.8), 0 8px 20px rgba(0, 230, 118, 0.5);
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        .trophy {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px #ffd700);
+            animation: float 2s ease-in-out infinite alternate;
+        }
+
+        #lock-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #060913;
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+            text-align: center;
+        }
+        #lock-screen h1 {
+            color: var(--wrong);
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(255, 23, 68, 0.4);
+        }
+        #lock-screen p {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        /* Botão flutuante do Instalador PWA */
+        #pwa-install-btn {
+            display: none;
+            background: linear-gradient(135deg, #00b0ff, #00e676);
+            color: #000;
+            border: 1px solid rgba(255,255,255,0.4);
+            padding: 10px 20px;
+            font-weight: bold;
+            border-radius: 20px;
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            cursor: pointer;
+            z-index: 10000;
+            box-shadow: inset 0 2px 3px rgba(255,255,255,0.5), 0 4px 10px rgba(0,230,118,0.3);
+            transition: all 0.2s ease;
+        }
+        #pwa-install-btn:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes float {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Botão de Instalação na Tela -->
+    <button id="pwa-install-btn">📥 Instalar Jogo</button>
+
+    <div id="lock-screen">
+        <h1>🔒 JOGO BLOQUEADO</h1>
+        <p>Entre em contato com o desenvolvedor para desbloquear.</p>
+    </div>
+
+    <div class="quiz-container" id="main-app">
+        
+        <div id="start-screen" class="screen active">
+            <h1 id="start-title" style="margin-bottom: 15px; font-size: 2.5rem; letter-spacing: 1px; background: linear-gradient(to right, #00e676, #00b0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">JOGO DO RILU</h1>
+            <p id="start-desc" style="margin-bottom: 30px; color: var(--text-muted); line-height: 1.6;">Quiz exclusivo de <strong>Futebol Moderno (2018 até Hoje)</strong>!<br>Acerte <strong>15 perguntas seguidas</strong> de 25 segundos para vencer. Se errar ou o tempo acabar, volta para a estaca zero.<br><br><em>A narração por voz lerá as perguntas. O tempo inicia após o término da fala.</em></p>
+            <button class="start-btn" id="btn-start" style="display: inline-block;">Iniciar Desafio</button>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div class="quiz-header">
+                <div class="score-badge">Era Moderna: <span id="current-question-num">1</span> de 15</div>
+                <div class="timer-circle" id="timer">25</div>
+            </div>
+
+            <div class="question-text" id="question">Carregando lance...</div>
+
+            <div class="options-container" id="options"></div>
+
+            <button class="next-btn" id="btn-next">Avançar para a próxima</button>
+        </div>
+
+        <div id="win-screen" class="screen">
+            <div class="trophy">🏆</div>
+            <h2 style="font-size: 2rem; color: #ffd700; margin-bottom: 10px;">🏆 REI DO FUTEBOL MODERNO! 🏆</h2>
+            <p style="margin-bottom: 30px; color: var(--text-muted);">Sensacional! Você gabaritou o JOGO DO RILU acertando 15 perguntas consecutivas sobre a história recente do futebol!</p>
+            <button class="start-btn" onclick="resetGame()" style="display: inline-block;">Jogar Novamente</button>
+        </div>
+
+    </div>
+
+    <script>
+        // Trava de Expiração (06/07/2026 às 08h00 BRT)
+        const EXPIRATION_TIMESTAMP = 1783335600000; 
+
+        function checkGameLock() {
+            if (Date.now() >= EXPIRATION_TIMESTAMP) {
+                clearInterval(timerInterval);
+                window.speechSynthesis.cancel();
+                document.getElementById('main-app').style.display = 'none';
+                document.getElementById('lock-screen').style.display = 'flex';
+                return true;
+            }
+            return false;
+        }
+
+        checkGameLock();
+        setInterval(checkGameLock, 5000);
+
+        const questionBank = [
+            { q: "Qual seleção conquistou a Copa do Mundo do Catar em 2022?", o: ["França", "Croácia", "Argentina", "Marrocos"], c: 2 },
+            { q: "Quem foi o grande campeão da Conmebol Libertadores de 2023?", o: ["Boca Juniors", "Palmeiras", "Flamengo", "Fluminense"], c: 3 },
+            { q: "Para qual clube espanhol o astro Kylian Mbappé se transferiu oficialmente em 2024?", o: ["Barcelona", "Real Madrid", "Atlético de Madrid", "Sevilla"], c: 1 },
+            { q: "Quem venceu a Bola de Ouro masculina no ano de 2023?", o: ["Erling Haaland", "Lionel Messi", "Kylian Mbappé", "Vinicius Jr."], c: 1 },
+            { q: "Qual equipe inglesa conquistou o inédito título da Champions League na temporada 2022/23?", o: ["Liverpool", "Chelsea", "Manchester City", "Arsenal"], c: 2 },
+            { q: "Qual país africano chocou o mundo ao chegar na semifinal da Copa de 2022?", o: ["Senegal", "Marrocos", "Camarões", "Egito"], c: 1 },
+            { q: "Quem venceu a Copa do Mundo da Rússia na edição de 2018?", o: ["Croácia", "Bélgica", "França", "Inglaterra"], c: 2 },
+            { q: "Qual clube quebrou a sequência do Bayern de Munique e foi campeão invicto da Bundesliga em 2024?", o: ["Borussia Dortmund", "Bayer Leverkusen", "RB Leipzig", "Stuttgart"], c: 1 },
+            { q: "Qual clube brasileiro conquistou a Copa Libertadores de forma consecutiva em 2020 e 2021?", o: ["Flamengo", "Palmeiras", "Atlético Mineiro", "Santos"], c: 1 },
+            { q: "Quem eliminou a Seleção Brasileira masculina nas quartas de final da Copa do Mundo de 2022?", o: ["Bélgica", "Croácia", "França", "Marrocos"], c: 1 },
+            { q: "Qual craque português balançou o mercado do futebol ao fechar com o Al-Nassr em 2023?", o: ["Cristiano Ronaldo", "Bruno Fernandes", "Luís Figo", "João Félix"], c: 0 },
+            { q: "Qual time brasileiro faturou o título do Brasileirão Série A na temporada de 2023?", o: ["Grêmio", "Botafogo", "Palmeiras", "Atlético Mineiro"], c: 2 },
+            { q: "Onde foi disputada a grande final da Conmebol Libertadores de 2024?", o: ["Estádio Monumental", "Maracanã", "Centenário", "Estádio Nacional"], c: 0 },
+            { q: "Qual treinador assumiu o comando definitivo da Seleção Brasileira masculina no início de 2024?", o: ["Fernando Diniz", "Carlo Ancelotti", "Dorival Júnior", "Tite"], c: 2 },
+            { q: "Quem foi o artilheiro isolado da Copa do Mundo de 2022 com 8 gols?", o: ["Lionel Messi", "Kylian Mbappé", "Olivier Giroud", "Julián Álvarez"], c: 1 },
+            { q: "Qual clube surpreendeu ao conquistar a Copa do Brasil na edição de 2023?", o: ["Flamengo", "São Paulo", "Corinthians", "Grêmio"], c: 1 },
+            { q: "Qual clube europeu conquistou a UEFA Champions League de 2023/24 na final em Wembley?", o: ["Borussia Dortmund", "Real Madrid", "Paris Saint-Germain", "Bayern de Munique"], c: 1 },
+            { q: "Quem eliminou o Brasil nas quartas de final na Copa do Mundo de 2018?", o: ["França", "Alemanha", "Bélgica", "Suíça"], c: 2 },
+            { q: "Qual clube argentino perdeu a épica final da Libertadores de 2018 para o seu rival River Plate em Madrid?", o: ["Boca Juniors", "Racing", "Independiente", "San Lorenzo"], c: 0 },
+            { q: "Em qual time dos Estados Unidos Lionel Messi assinou contrato em 2023?", o: ["LA Galaxy", "Inter Miami", "New York City", "Orlando City"], c: 1 },
+            { q: "Quem foi eleito o melhor jogador do mundo pela FIFA no ano de 2020?", o: ["Lionel Messi", "Cristiano Ronaldo", "Robert Lewandowski", "Neymar"], c: 2 },
+            { q: "Qual clube do Rio de Janeiro foi campeão da Libertadores e do Brasileirão em 2019?", o: ["Vasco", "Fluminense", "Flamengo", "Botafogo"], c: 2 },
+            { q: "Qual país europeu se sagrou campeão da Eurocopa em 2024, derrotando a Inglaterra na final?", o: ["França", "Itália", "Espanha", "Alemanha"], c: 2 },
+            { q: "Qual equipe paulista venceu o Paulistão consecutivamente em 2022, 2023 e 2024?", o: ["São Paulo", "Palmeiras", "Corinthians", "Santos"], c: 1 },
+            { q: "Quem marcou o gol do título do Palmeiras contra o Flamengo na final da Libertadores de 2021?", o: ["Breno Lopes", "Deyverson", "Raphael Veiga", "Gabigol"], c: 1 },
+            { q: "Qual jogador brasileiro, ex-Fluminense, foi o capitão do Real Madrid na conquista da Champions em 2022?", o: ["Casemiro", "Éder Militão", "Vinicius Jr.", "Marcelo"], c: 3 },
+            { q: "Onde foi realizada a primeira Copa do Mundo feminina sediada em dois países simultâneos em 2023?", o: ["Espanha", "Inglaterra", "Austrália e Nova Zelândia", "EUA"], c: 2 },
+            { q: "Qual clube inglês quebrou jejum de 30 anos ao vencer a Premier League na temporada 2019/20?", o: ["Manchester City", "Chelsea", "Liverpool", "Manchester United"], c: 2 },
+            { q: "Qual jogador de ataque fez o gol do título da Copa do Brasil de 2022 pelo Flamengo?", o: ["Pedro", "Arrascaeta", "Gabigol", "Everton Ribeiro"], c: 2 },
+            { q: "Quem foi o vencedor do prêmio Puskás de 2023 com um lindo gol de bicicleta pelo Botafogo-SP?", o: ["Guilherme Madruga", "De Arrascaeta", "Nuno Santos", "Richarlison"], c: 0 },
+            { q: "Qual tradicional seleção europeia ficou de fora das Copas do Mundo de 2018 e de 2022?", o: ["Holanda", "Itália", "Alemanha", "Portugal"], c: 1 },
+            { q: "Qual clube mineiro dominou o futebol brasileiro em 2021, vencendo o Brasileirão e a Copa do Brasil?", o: ["Cruzeiro", "América Mineiro", "Atlético Mineiro", "Ipatinga"], c: 2 },
+            { q: "Quem fez o gol da vitória do Real Madrid na final da Champions de 2021/22 contra o Liverpool?", o: ["Karim Benzema", "Luka Modric", "Vinicius Jr.", "Rodrygo"], c: 2 },
+            { q: "Em qual time do futebol italiano o craque Cristiano Ronaldo jogou entre 2018 e 2021?", o: ["Milan", "Juventus", "Inter de Milão", "Roma"], c: 1 },
+            { q: "Qual seleção venceu a Copa América de 2021 derrotando o Brasil na grande final no Maracanã?", o: ["Chile", "Colômbia", "Argentina", "Uruguai"], c: 2 },
+            { q: "Quem foi o técnico campeão do mundo com a Argentina nas copas e torneios recentes?", o: ["Jorge Sampaoli", "Lionel Scaloni", "Diego Simeone", "Marcelo Gallardo"], c: 1 },
+            { q: "Qual clube francês anunciou a saída de Messi, Neymar e Mbappé em janelas consecutivas?", o: ["Lyon", "Monaco", "Marseille", "Paris Saint-Germain"], c: 3 },
+            { q: "Quem fez os dois gols do Flamengo na virada histórica contra o River Plate na final da Libertadores de 2019?", o: ["Bruno Henrique", "Gabigol", "Arrascaeta", "Everton Ribeiro"], c: 1 },
+            { q: "Qual time venceu a inédita edição da UEFA Conference League em 2022 sob comando de José Mourinho?", o: ["Feyenoord", "Roma", "West Ham", "Fiorentina"], c: 1 },
+            { q: "Qual atacante norueguês quebrou o recorde de gols em uma única edição da Premier League em 2023?", o: ["Erling Haaland", "Martin Odegaard", "Harry Kane", "Mohamed Salah"], c: 0 },
+            { q: "Quem assumiu a camisa 10 da Seleção Brasileira na Copa do Mundo de 2022 com a ausência de Neymar?", o: ["Lucas Paquetá", "Rodrygo", "Vinicius Jr.", "Richarlison"], c: 1 },
+            { q: "Qual equipe conquistou a Copa do Brasil de 2024 batendo o Atlético Mineiro na grande final?", o: ["Flamengo", "Vasco", "São Paulo", "Corinthians"], c: 0 },
+            { q: "Qual seleção europeia conquistou a Nations League da UEFA em 2023 vencendo a Croácia nos pênaltis?", o: ["Espanha", "França", "Itália", "Holanda"], c: 0 },
+            { q: "Qual estádio recebeu a grande final da Copa América de 2019 realizada no Brasil?", o: ["Neo Química Arena", "Allianz Parque", "Morumbi", "Maracanã"], c: 3 },
+            { q: "Quem foi eleito o melhor jogador da Conmebol Libertadores de 2023?", o: ["John Kennedy", "Germán Cano", "Jhon Arias", "André"], c: 1 },
+            { q: "Em que ano a Seleção Italiana venceu a Eurocopa superando a Inglaterra em pleno Wembley?", o: ["2018", "2019", "2021", "2022"], c: 2 },
+            { q: "Qual jogador inglês foi o principal reforço e destaque do Real Madrid na temporada 2023/24?", o: ["Harry Kane", "Jude Bellingham", "Phil Foden", "Bukayo Saka"], c: 1 },
+            { q: "Qual clube faturou a Copa do Brasil de 2020 sob o comando de Abel Ferreira?", o: ["Grêmio", "Palmeiras", "Santos", "Ceará"], c: 1 },
+            { q: "Qual jogador marcar o antológico gol de bicicleta na Copa do Mundo de 2022 pelo Brasil contra a Sérvia?", o: ["Neymar", "Vinicius Jr.", "Richarlison", "Raphinha"], c: 2 },
+            { q: "Qual gigante europeu foi o campeão do Mundial de Clubes da FIFA disputado no início de 2025?", o: ["Real Madrid", "Manchester City", "Chelsea", "Bayern de Munique"], c: 1 }
+        ];
+
+        let poolOfQuestions = [];
+        let gameQuestions = [];
+        let currentIndex = 0;
+        let timerInterval;
+        let timeLeft = 25;
+        let audioCtx = null;
+
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const winScreen = document.getElementById('win-screen');
+        const startTitle = document.getElementById('start-title');
+        const startDesc = document.getElementById('start-desc');
+        const btnStart = document.getElementById('btn-start');
+        const questionText = document.getElementById('question');
+        const optionsContainer = document.getElementById('options');
+        const timerElement = document.getElementById('timer');
+        const currentQuestionNum = document.getElementById('current-question-num');
+        const btnNext = document.getElementById('btn-next');
+
+        btnStart.addEventListener('click', startGame);
+        btnNext.addEventListener('click', nextQuestion);
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSuccessSound() {
+            initAudio();
+            if(!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(523.25, now);
+            osc1.frequency.exponentialRampToValueAtTime(659.25, now + 0.15);
+            gain1.gain.setValueAtTime(0.15, now);
+            gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.4);
+        }
+
+        function playErrorSound() {
+            initAudio();
+            if(!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.linearRampToValueAtTime(80, now + 0.3);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.35);
+        }
+
+        function narrateQuestionOnly(questionTextStr, onEndCallback) {
+            window.speechSynthesis.cancel(); 
+            const utterance = new SpeechSynthesisUtterance(questionTextStr);
+            utterance.lang = 'pt-BR';
+            utterance.rate = 1.05;
+
+            utterance.onend = function() {
+                onEndCallback(); 
+            };
+            utterance.onerror = function() {
+                onEndCallback(); 
+            };
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function refillPoolIfNeeded(countNeeded) {
+            if (poolOfQuestions.length < countNeeded) {
+                poolOfQuestions = [...questionBank].sort(() => Math.random() - 0.5);
+            }
+        }
+
+        function startGame() {
+            if (checkGameLock()) return;
+            initAudio();
+            
+            refillPoolIfNeeded(15);
+            gameQuestions = poolOfQuestions.splice(0, 15);
+            currentIndex = 0;
+            
+            startScreen.classList.remove('active');
+            winScreen.classList.remove('active');
+            gameScreen.classList.add('active');
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (checkGameLock()) return;
+            window.speechSynthesis.cancel();
+            
+            btnNext.style.display = 'none';
+            timerElement.classList.remove('timer-low');
+            timerElement.textContent = "🎙️"; 
+            
+            const currentQuestion = gameQuestions[currentIndex];
+            currentQuestionNum.textContent = currentIndex + 1;
+            questionText.textContent = currentQuestion.q;
+            
+            optionsContainer.innerHTML = '';
+            currentQuestion.o.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.innerHTML = `<span class="option-number">${index + 1}</span> ${option}`;
+                button.addEventListener('click', () => checkAnswer(index));
+                optionsContainer.appendChild(button);
+            });
+
+            narrateQuestionOnly(currentQuestion.q, () => {
+                startTimer();
+            });
+        }
+
+        function startTimer() {
+            if (checkGameLock()) return;
+            clearInterval(timerInterval);
+            timeLeft = 25;
+            timerElement.textContent = timeLeft;
+            
+            timerInterval = setInterval(() => {
+                if (checkGameLock()) return;
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                
+                if(timeLeft <= 5) {
+                    timerElement.classList.add('timer-low');
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    window.speechSynthesis.cancel();
+                    playErrorSound();
+                    handleGameOver("O tempo esgotou! Na era moderna o ritmo de jogo é rápido.");
+                }
+            }, 1000);
+        }
+
+        function checkAnswer(selectedIndex) {
+            clearInterval(timerInterval);
+            window.speechSynthesis.cancel(); 
+            if (checkGameLock()) return;
+            
+            const currentQuestion = gameQuestions[currentIndex];
+            const buttons = optionsContainer.querySelectorAll('.option-btn');
+            
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (selectedIndex === currentQuestion.c) {
+                playSuccessSound();
+                buttons[selectedIndex].classList.add('correct');
+                buttons[selectedIndex].innerHTML += `<span class="feedback-icon check">✓</span>`;
+                
+                if (currentIndex === 14) {
+                    setTimeout(() => {
+                        if (checkGameLock()) return;
+                        gameScreen.classList.remove('active');
+                        winScreen.classList.add('active');
+                    }, 1200);
+                } else {
+                    btnNext.style.display = 'block';
+                }
+            } else {
+                playErrorSound();
+                buttons[selectedIndex].classList.add('wrong');
+                buttons[selectedIndex].innerHTML += `<span class="feedback-icon cross">X</span>`;
+                buttons[currentQuestion.c].classList.add('correct');
+                
+                setTimeout(() => {
+                    handleGameOver("Resposta incorreta! Você perdeu o foco tático.");
+                }, 1500);
+            }
+        }
+
+        function nextQuestion() {
+            if (checkGameLock()) return;
+            currentIndex++;
+            showQuestion(); 
+        }
+
+        function handleGameOver(reason) {
+            clearInterval(timerInterval);
+            window.speechSynthesis.cancel();
+            gameScreen.classList.remove('active');
+            
+            startTitle.textContent = "Fim de Jogo!";
+            startDesc.innerHTML = `${reason}<br><br>Você parou na pergunta <strong>${currentIndex + 1} de 15</strong>.<br>As perguntas erradas foram descartadas, as próximas rodadas trarão novos lances!`;
+            btnStart.textContent = "Recomeçar Desafio";
+            
+            startScreen.classList.add('active');
+        }
+
+        function resetGame() {
+            if (checkGameLock()) return;
+            window.speechSynthesis.cancel();
+            winScreen.classList.remove('active');
+            startTitle.innerHTML = "JOGO DO RILU";
+            startDesc.innerHTML = "Quiz exclusivo de <strong>Futebol Moderno (2018 até Hoje)</strong>!<br>Acerte <strong>15 perguntas seguidas</strong> de 25 segundos para vencer. Se errar ou o tempo acabar, volta para a estaca zero.";
+            btnStart.textContent = "Iniciar Desafio";
+            startScreen.classList.add('active');
+        }
+
+        // LÓGICA DE INSTALAÇÃO DO APLICATIVO (PWA)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('Service Worker ativo.'))
+                .catch(err => console.log('Falha no Service Worker:', err));
+        }
+
+        let deferredPrompt;
+        const installBtn = document.getElementById('pwa-install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'block';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('Instalação aceita pelo usuário.');
+                }
+                deferredPrompt = null;
+                installBtn.style.display = 'none';
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            console.log('Jogo instalado com sucesso!');
+            installBtn.style.display = 'none';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "JOGO DO RILU",
+  "short_name": "Jogo do Rilu",
+  "description": "Quiz exclusivo de Futebol Moderno",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0a0f1d",
+  "theme-color": "#0a0f1d",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=192&auto=format&fit=crop",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=512&auto=format&fit=crop",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
