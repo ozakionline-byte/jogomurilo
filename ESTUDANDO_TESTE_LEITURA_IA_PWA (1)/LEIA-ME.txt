@@ -1,0 +1,14 @@
+ESTUDANDO - TESTE REAL DE LEITURA DE DEVER COM IA
+
+Este projeto faz a leitura REAL da foto usando um modelo com visão e gera 3 perguntas. Precisa de API OpenAI e de publicação como projeto Cloudflare Pages com suporte a Functions.
+
+1. Crie um projeto Cloudflare Pages conectado a um repositório Git que contenha os arquivos deste ZIP na raiz. IMPORTANTE: a pasta functions/api/analyze.js deve ser publicada como Pages Function. Upload estático por arrastar ZIP/arquivos no painel NÃO publica Pages Functions.
+2. Em Pages > projeto > Settings > Variables and Secrets, adicione o segredo OPENAI_API_KEY com sua chave da API OpenAI. Opcional: OPENAI_MODEL = gpt-4o-mini.
+3. Faça um novo deploy. Abra o endereço https://...pages.dev.
+4. Selecione matéria, série, fotografe o dever e clique em Ler atividade. O backend envia a imagem à OpenAI, recebe transcrição e 3 questões, e mostra o resultado.
+
+A API OpenAI é cobrada por uso e tem cobrança independente do ChatGPT Plus. Nunca coloque sua chave no index.html. A chave fica apenas no ambiente secreto da função.
+
+PRIVACIDADE: protótipo de teste. Não envie fotos com nomes, rostos, endereços ou outros dados pessoais de crianças. Não salva a foto no banco, mas a imagem é enviada ao provedor de IA. Para produção, implemente autenticação, consentimento/base legal apropriada, proteção de menores, limites de requisição, monitoramento de custos e políticas de retenção.
+
+LIMITES: as perguntas são geradas por IA e podem conter erros. Não existe garantia de gabarito perfeito. Este ZIP testa somente a etapa de foto -> leitura -> 3 perguntas, não substitui o app completo.
