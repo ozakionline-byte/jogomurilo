@@ -1,0 +1,23 @@
+ESTUDANDO — PROTÓTIPO PWA (DEMONSTRAÇÃO)
+
+INCLUI:
+- Cadastro do responsável/aluno, grade semanal e seis avatares.
+- Perguntas sobre o dia, 12 estrelas, sem penalidade emocional.
+- Seleção/foto de atividade (prévia local) e três perguntas ilustrativas por matéria.
+- Declaração de dever feito com 10 pontos.
+- Relatório diário, impressão em PDF, compartilhamento manual e histórico local.
+- Manifest e service worker para instalação PWA e cache offline.
+
+LIMITAÇÕES IMPORTANTES:
+- NÃO interpreta imagens com IA. Perguntas são exemplos fixos por assunto.
+- NÃO possui autenticação, Supabase, e-mail automático nem painel administrativo.
+- Dados ficam em localStorage, somente neste navegador; não usar com dados reais de crianças.
+- Para produção: login seguro de responsáveis, Supabase/RLS, armazenamento privado, política de retenção, consentimentos/bases legais, controles LGPD e API de IA no backend.
+
+PUBLICAR NO CLOUDFLARE PAGES:
+1. Extraia este ZIP.
+2. Faça upload dos arquivos que estão DENTRO da pasta ESTUDANDO_PWA (index.html na raiz).
+3. Abra a URL HTTPS fornecida pelo Cloudflare.
+4. No celular, use Instalar/Adicionar à tela inicial (quando suportado).
+
+TESTE LOCAL: hospede com servidor HTTP (ex.: python -m http.server 8000); PWA exige localhost ou HTTPS.
